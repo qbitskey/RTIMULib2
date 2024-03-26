@@ -53,6 +53,8 @@ bool RTIMUBNO055::IMUInit()
 {
     unsigned char result;
 
+    m_firstTime = true;
+
     m_slaveAddr = m_settings->m_I2CSlaveAddress;
     m_lastReadTime = RTMath::currentUSecsSinceEpoch();
 
@@ -66,6 +68,8 @@ bool RTIMUBNO055::IMUInit()
     m_imuData.pressureValid = false;
     m_imuData.temperatureValid = false;
     m_imuData.humidityValid = false;
+
+
 
     if (!m_settings->HALRead(m_slaveAddr, BNO055_WHO_AM_I, 1, &result, "Failed to read BNO055 id"))
         return false;
@@ -105,20 +109,23 @@ bool RTIMUBNO055::IMUInit()
 
     m_settings->delayMs(50);
 
-    if (!m_settings->HALWrite(m_slaveAddr, BNO055_SYS_TRIGGER, 0x00, "Failed to start BNO055"))
+    if (!m_settings->HALWrite(m_slaveAddr, BNO055_SYS_TRIGGER, 0x00, "Failed to start BNO055")) //0x80 bedeutet externe clock, 00 intern
         return false;
 
     m_settings->delayMs(50);
 
-    if (!m_settings->HALWrite(m_slaveAddr, BNO055_UNIT_SEL, 0x87, "Failed to set BNO055 units"))
+    if (!m_settings->HALWrite(m_slaveAddr, BNO055_UNIT_SEL, 0x81, "Failed to set BNO055 units"))
+    //    return false;
+
+    m_settings->delayMs(50);
+
+    if (!m_settings->HALWrite(m_slaveAddr, BNO055_OPER_MODE, 0x05, "Failed to set BNO055 into 9-dof mode"))
         return false;
 
     m_settings->delayMs(50);
 
-    if (!m_settings->HALWrite(m_slaveAddr, BNO055_OPER_MODE, BNO055_OPER_MODE_NDOF, "Failed to set BNO055 into 9-dof mode"))
-        return false;
+    //gyroBiasInit();
 
-    m_settings->delayMs(50);
 
     HAL_INFO("BNO055 init complete\n");
     return true;
@@ -126,12 +133,12 @@ bool RTIMUBNO055::IMUInit()
 
 int RTIMUBNO055::IMUGetPollInterval()
 {
-    return (7);
+    return (11);
 }
 
 bool RTIMUBNO055::IMURead()
 {
-    unsigned char buffer[24];
+       unsigned char buffer[24];
 
     if ((RTMath::currentUSecsSinceEpoch() - m_lastReadTime) < m_sampleInterval)
         return false;                                       // too soon
@@ -172,20 +179,17 @@ bool RTIMUBNO055::IMURead()
     m_imuData.gyro.setY(-(RTFLOAT)x / 900.0);
     m_imuData.gyro.setZ(-(RTFLOAT)z / 900.0);
 
-    // process euler angles
+    //handleGyroBias();
+    //calibrateAverageCompass();
+    //calibrateAccel();
 
-    x = (((uint16_t)buffer[19]) << 8) | ((uint16_t)buffer[18]);
-    y = (((uint16_t)buffer[21]) << 8) | ((uint16_t)buffer[20]);
-    z = (((uint16_t)buffer[23]) << 8) | ((uint16_t)buffer[22]);
+    //if (m_firstTime)
+        m_imuData.timestamp = RTMath::currentUSecsSinceEpoch();
+    //else
+    //    m_imuData.timestamp += m_sampleInterval;
 
-    //  put in structure and do axis remap
+    m_firstTime = false;
+    updateFusion();
 
-    m_imuData.fusionPose.setX((RTFLOAT)y / 900.0);
-    m_imuData.fusionPose.setY((RTFLOAT)z / 900.0);
-    m_imuData.fusionPose.setZ((RTFLOAT)x / 900.0);
-
-    m_imuData.fusionQPose.fromEuler(m_imuData.fusionPose);
-
-    m_imuData.timestamp = RTMath::currentUSecsSinceEpoch();
     return true;
 }

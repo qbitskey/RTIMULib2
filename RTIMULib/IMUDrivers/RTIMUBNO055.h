@@ -41,7 +41,7 @@ public:
 
 private:
     unsigned char m_slaveAddr;                              // I2C address of BNO055
-
+    bool m_firstTime;
     uint64_t m_lastReadTime;
 };
 
