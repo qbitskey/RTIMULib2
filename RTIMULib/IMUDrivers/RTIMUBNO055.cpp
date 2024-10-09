@@ -133,7 +133,7 @@ bool RTIMUBNO055::IMUInit()
 
 int RTIMUBNO055::IMUGetPollInterval()
 {
-    return (11);
+    return (7);
 }
 
 bool RTIMUBNO055::IMURead()
