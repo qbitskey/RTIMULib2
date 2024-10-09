@@ -186,15 +186,16 @@ bool RTIMUBNO055::IMURead()
     m_imuData.gyro.setY(-(RTFLOAT)x / 900.0);
     m_imuData.gyro.setZ(-(RTFLOAT)z / 900.0);
 
+    //handleGyroBias();
+    //calibrateAverageCompass();
+    //calibrateAccel();
 
-    //  put in structure and do axis remap
-
-    m_imuData.fusionPose.setX((RTFLOAT)y / 900.0);
-    m_imuData.fusionPose.setY((RTFLOAT)z / 900.0);
-    m_imuData.fusionPose.setZ((RTFLOAT)x / 900.0);
-
-    m_imuData.fusionQPose.fromEuler(m_imuData.fusionPose);
-
+    //if (m_firstTime)
     m_imuData.timestamp = RTMath::currentUSecsSinceEpoch();
+    //else
+    //    m_imuData.timestamp += m_sampleInterval;
+
+    m_firstTime = false;
+        updateFusion();
     return true;
 }
