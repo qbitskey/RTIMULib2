@@ -114,8 +114,8 @@ bool RTIMUBNO055::IMUInit()
 
     m_settings->delayMs(50);
 
-    if (!m_settings->HALWrite(m_slaveAddr, BNO055_UNIT_SEL, 0x81, "Failed to set BNO055 units"))
-    //    return false;
+    if (!m_settings->HALWrite(m_slaveAddr, BNO055_UNIT_SEL, 0x87, "Failed to set BNO055 units"))
+        return false;
 
     m_settings->delayMs(50);
 
@@ -179,17 +179,15 @@ bool RTIMUBNO055::IMURead()
     m_imuData.gyro.setY(-(RTFLOAT)x / 900.0);
     m_imuData.gyro.setZ(-(RTFLOAT)z / 900.0);
 
-    //handleGyroBias();
-    //calibrateAverageCompass();
-    //calibrateAccel();
 
-    //if (m_firstTime)
-        m_imuData.timestamp = RTMath::currentUSecsSinceEpoch();
-    //else
-    //    m_imuData.timestamp += m_sampleInterval;
+    //  put in structure and do axis remap
 
-    m_firstTime = false;
-    updateFusion();
+    m_imuData.fusionPose.setX((RTFLOAT)y / 900.0);
+    m_imuData.fusionPose.setY((RTFLOAT)z / 900.0);
+    m_imuData.fusionPose.setZ((RTFLOAT)x / 900.0);
 
+    m_imuData.fusionQPose.fromEuler(m_imuData.fusionPose);
+
+    m_imuData.timestamp = RTMath::currentUSecsSinceEpoch();
     return true;
 }
