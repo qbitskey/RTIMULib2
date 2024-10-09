@@ -124,6 +124,13 @@ bool RTIMUBNO055::IMUInit()
 
     m_settings->delayMs(50);
 
+    if (!m_settings->HALWrite(m_slaveAddr, 0x0A, 0x00, "Gyro mode failed"))
+        return false;
+
+    m_settings->delayMs(50);
+
+
+
     //gyroBiasInit();
 
 
