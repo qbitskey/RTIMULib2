@@ -119,7 +119,7 @@ bool RTIMUBNO055::IMUInit()
 
     m_settings->delayMs(50);
 
-    if (!m_settings->HALWrite(m_slaveAddr, BNO055_OPER_MODE, 0x05, "Failed to set BNO055 into 9-dof mode"))
+    if (!m_settings->HALWrite(m_slaveAddr, BNO055_OPER_MODE, 0x07, "Failed to set BNO055 into 9-dof mode"))
         return false;
 
     m_settings->delayMs(50);
